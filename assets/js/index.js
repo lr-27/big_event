@@ -18,7 +18,7 @@ $(function () {
 
     })
 })
-
+// 这些方法是全局的后面iframe要用
 // 获取用户信息的函数封装
 function getUserInfo() {
     $.ajax({

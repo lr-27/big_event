@@ -15,7 +15,7 @@ $.ajaxPrefilter(function (options) {
     // 所有请求完成后都要进行身份认证判断
     options.complete = function (res) {
         var data = res.responseJSON;
-        console.log(data);
+        // console.log(data);
         if (data.status == 1 && data.message == '身份认证失败！') {
             // 删除token
             localStorage.removeItem('token')
