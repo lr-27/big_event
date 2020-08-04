@@ -1,26 +1,7 @@
 $(function () {
+    var form = layui.form
     // 初始化富文本编辑器
     initEditor()
-    var layer = layui.layer
-    var form = layui.form
-    // 渲染文章分类
-    initCate()
-    function initCate() {
-        $.ajax({
-            type: 'get',
-            url: '/my/article/cates',
-            success: function (res) {
-                if (res.status !== 0) return layer.msg(res.message)
-                // 调用模板引擎渲染下拉菜单
-                // 调用form.render()
-                var htmlStr = template('tpl-cate', res);
-                $('[name="cate_id"]').html(htmlStr)
-                form.render()
-
-            }
-        })
-    }
-
     // 1. 初始化图片裁剪器
     var $image = $('#image')
 
@@ -32,6 +13,51 @@ $(function () {
 
     // 3. 初始化裁剪区域
     $image.cropper(options)
+    // 4.根据id获取文章信息
+    // console.log(location);
+    // console.log(location.search);
+    var Id = location.search.split("=")[1]
+    // console.log(Id);
+
+    $.ajax({
+        type: 'get',
+        url: '/my/article/' + Id,
+        success: function (res) {
+            // console.log(res);
+            // 根据文章信息渲染页面
+            // 标题
+            $("[name=Id]").val(res.data.Id)
+            $("[name=title]").val(res.data.title)
+            // 封面
+            // 前后端分离开发图片路径要添加上基础路径
+            // $("#image").val("src", baseURL + res.data.title)
+            // 分类
+            setTimeout(function () {
+                tinyMCE.activeEditor.setContent(res.data.content)
+            }, 1000)
+            // 内容
+            initCate(res.data.cate_id)
+
+        }
+    })
+    // 获取文章分类 初始化文章分类
+    function initCate(cate_id) {
+        // console.log(cate_id);
+        $.ajax({
+            type: 'get',
+            url: '/my/article/cates',
+            success: function (res) {
+                console.log(res);
+                res.cate_id = cate_id
+                if (res.status !== 0) return layer.msg(res.message)
+                // 调用模板引擎渲染下拉菜单
+                // 调用form.render()
+                var htmlStr = template('tpl-cate', res);
+                $('[name="cate_id"]').html(htmlStr)
+                form.render()
+            }
+        })
+    }
     // 为选择封面的按钮绑定点击事件
     $('#btnChooseImage').on('click', function () {
         $('#coverFile').click()
@@ -67,7 +93,8 @@ $(function () {
         var fd = new FormData(this)
         // 将文章的发布状态存储到fd中
         fd.append('state', art_state)
-        // console.log(...fd);
+        // fd.append('Id', Id)
+        console.log(...fd);
         // 生成二进制图片文件
         // base64是字符串 
         // 将封面裁剪后的文件输出为文件对象
@@ -91,17 +118,18 @@ $(function () {
         function publishArticle(fd) {
             $.ajax({
                 type: 'post',
-                url: '/my/article/add',
+                url: '/my/article/edit',
                 data: fd,
                 // 如果向服务器提交的是formdata的数据必须添加以下配置项
                 contentType: false,
                 processData: false,
                 success: function (res) {
+
                     if (res.status !== 0) return layer.msg(res.message)
                     layer.msg(res.message)
                     // 发布文章成功后跳转到文章列表页面
                     window.parent.document.querySelector('#a2').click()
-                    location.href = '/article/art_list.html'
+                    // location.href = '/article/art_list.html'
                     // window.parent.document.getElementById('a2').className = "layui-this"
                     // window.parent.document.getElementById('a3').className = ""
                 }
@@ -110,12 +138,5 @@ $(function () {
         }
 
 
-
-
-
     })
-
-
-
-
 })
